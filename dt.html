@@ -1,0 +1,59 @@
+Model the following system as a document database. Consider a database of newspaper, publisher, and city. Different publishers publish various newspapers in different cities.
+Assume appropriate attributes and collections as per the query requirements.
+Insert at least 5 documents in each collection.
+Answer the following queries:
+a. List all newspapers available in “Nashik” city.
+b. List all the newspapers of “Marathi” language.
+c. Count the number of publishers in “Gujarat” state.
+d. Write a cursor to show newspapers with the highest sale in Maharashtra State.
+Program:
+
+  
+ 
+# Start MongoDB   
+mongosh
+
+# Create and select the database
+use NewspaperDatabase
+
+# Create and insert documents into the 'publishers' collection
+db.publishers.insertMany([
+  { _id: 1, name: "Lokmat Group", state: "Maharashtra" },
+  { _id: 2, name: "Sandesh Publications", state: "Gujarat" },
+  { _id: 3, name: "Sakal Media", state: "Maharashtra" },
+  { _id: 4, name: "Gujarat Samachar", state: "Gujarat" },
+  { _id: 5, name: "Times Group", state: "Karnataka" }
+])
+
+# Create and insert documents into the 'newspapers' collection
+db.newspapers.insertMany([
+  { _id: 1, title: "Lokmat", language: "Marathi", city: "Nashik", publisher_id: 1, sales: 100000 },
+  { _id: 2, title: "Sakal", language: "Marathi", city: "Pune", publisher_id: 3, sales: 95000 },
+  { _id: 3, title: "Sandesh", language: "Gujarati", city: "Ahmedabad", publisher_id: 2, sales: 80000 },
+  { _id: 4, title: "Gujarat Samachar", language: "Gujarati", city: "Surat", publisher_id: 4, sales: 85000 },
+  { _id: 5, title: "Maharashtra Times", language: "Marathi", city: "Mumbai", publisher_id: 1, sales: 110000 }
+])
+
+# a. List all newspapers available in “Nashik” city
+db.newspapers.find({ city: "Nashik" })
+
+# b. List all the newspapers of “Marathi” language
+db.newspapers.find({ language: "Marathi" })
+
+# c. Count the number of publishers in “Gujarat” state
+db.publishers.countDocuments({ state: "Gujarat" })
+
+# d. Write a cursor to show newspapers with the highest sale in Maharashtra State
+db.newspapers.aggregate([
+  {
+    $lookup: {
+      from: "publishers",
+      localField: "publisher_id",
+      foreignField: "_id",
+      as: "publisher_details"
+    }
+  },
+  { $match: { "publisher_details.state": "Maharashtra" } },
+  { $sort: { sales: -1 } },
+  { $limit: 1 }
+])
